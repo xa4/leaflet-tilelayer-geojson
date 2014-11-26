@@ -23,6 +23,9 @@ L.TileLayer.Ajax = L.TileLayer.extend({
     },
     // Load the requested tile via AJAX
     _loadTile: function (tile, tilePoint) {
+        // code added
+        tileLeftToBeLoaded ++;
+        // end of code added
         this._adjustTilePoint(tilePoint);
         var layer = this;
         var req = new XMLHttpRequest();
@@ -39,7 +42,7 @@ L.TileLayer.Ajax = L.TileLayer.extend({
         this._requests = [];
     },
     _update: function () {
-        if (this._map && this._map._panTransition && this._map._panTransition._inProgress) { return; }
+        if (this._map._panTransition && this._map._panTransition._inProgress) { return; }
         if (this._tilesToLoad < 0) { this._tilesToLoad = 0; }
         L.TileLayer.prototype._update.apply(this, arguments);
     }
@@ -71,6 +74,8 @@ L.TileLayer.GeoJSON = L.TileLayer.Ajax.extend({
         this._keyLayers = {};
         this._removeOldClipPaths();
         L.TileLayer.Ajax.prototype._reset.apply(this, arguments);
+        // One line added!
+        geoJSONObjects = [];
     },
 
     // Remove clip path elements from other earlier zoom levels
@@ -247,6 +252,21 @@ L.TileLayer.GeoJSON = L.TileLayer.Ajax.extend({
     _tileLoaded: function (tile, tilePoint) {
         L.TileLayer.Ajax.prototype._tileLoaded.apply(this, arguments);
         if (tile.datum === null) { return null; }
+
+        /*
+         *  code added !!!!!!!!!!!
+         */
+        tileLeftToBeLoaded--;
+        var raceList = [];
+        for (var property in this._keyLayers) {
+            if (this._keyLayers.hasOwnProperty(property)) {
+                var race = [property, this._keyLayers[property]._leaflet_id];
+                raceList.push(race);
+            }
+        }
+        updateRaceList(raceList);
+
+        
         this.addTileData(tile.datum, tilePoint);
     }
 });
